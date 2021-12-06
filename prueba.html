@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div id="main">
+        <form action="" @submit.prevent="addUsuario()">
+            <input type="text" id="nombre" placeholder="Ingresa tu nombre" v-model="nombre">
+            <input type="text" id="edad" placeholder="Ingresa tu edad" v-model="edad">
+            <input type="submit" value="Añadir">
+        </form>
+
+
+
+        <!-- <button v-on:click="getUsuario()"> Ver usuarios</button> -->
+        <div v-for="usuario in usuarios">
+            <label>Id: {{usuario.id }} Nombre: {{ usuario.data.nombre }}</label>
+            <button  v-on:click="eliminarUsuario(usuario.id )" >Eliminar</button>
+            <button v-on:click="editarUsuarios(usuario.id )" >Editar</button>
+        </div>
+  
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <script>
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmN7q1qRfShLWQXXt5f33ZIE0k6a8hwlE",
+            authDomain: "proyecto-web-25bba.firebaseapp.com",
+            projectId: "proyecto-web-25bba",
+            storageBucket: "proyecto-web-25bba.appspot.com",
+            messagingSenderId: "936206598176",
+            appId: "1:936206598176:web:e6e41eb1b3fd6a93493c45",
+            measurementId: "G-09QSWHGMHY"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+        new Vue({
+            el: '#main',
+            data: {
+                nombre: null,
+                edad: null,
+                usuarios: [],
+            },
+            mounted(){
+                this.usuarios=[]
+                db.collection("users").get().then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            this.usuarios.push({ id: doc.id, data: doc.data() })
+                        });
+                    });
+            },
+            methods: {
+                addUsuario: function () {
+                   
+                    db.collection("users").add({
+                        nombre: this.nombre,
+                        edad: this.edad,
+                    })
+                        .then((docRef) => {
+                            console.log("Document written with ID: ", docRef.id);
+                        })
+                        .catch((error) => {
+                            console.error("Error adding document: ", error);
+                        });
+
+                },
+                getUsuario: function () {
+                    this.usuarios=[]
+                    db.collection("users").get().then((querySnapshot) => {
+                        querySnapshot.forEach((doc) => {
+                            this.usuarios.push({ id: doc.id, data: doc.data() })
+                        });
+                    });
+                },
+                eliminarUsuario: function (id) {
+                    db.collection("users").doc(id).delete().then(() => {
+                        console.log("Document successfully deleted!");
+                        this.$mount();
+                    }).catch((error) => {
+                        console.error("Error removing document: ", error);
+                    });
+                },
+                editarUsuarios:function(id){
+                    const res =  db.collection('users').doc(id).set({nombre:this.nombre,edad:this.edad})
+                    .then(()=>this.$mount())
+
+                }
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>
